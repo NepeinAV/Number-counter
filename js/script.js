@@ -1,23 +1,18 @@
 'use strict';
 var cvel = document.getElementById("canvas");
 var cv = cvel.getContext("2d");
-var size = 6;
+var size = 3;
+var h = cvel.offsetHeight;
 var scale = 860 / (size * 2 + 1);
 var count = 1;
-cv.translate(450, 300);
+cv.translate(450, h / 2);
 
 function drawXAxis() {
     let s;
     cv.lineWidth = 1;
     cv.strokeStyle = "#000";
     cv.fillStyle = "#000";
-    cv.save();
-    cv.lineWidth = 2;
-    cv.font = "16px Calibri";
-    cv.fillStyle = "blue";
-    cv.fillText(count, 0, 20);
-    cv.restore();
-    cv.font = "12px Calibri";
+    cv.font = "14px Calibri";
     cv.textAlign = "center";
     cv.beginPath();
     //ось
@@ -51,6 +46,21 @@ function arc() {
     }
     var spr;
 
+    cv.strokeStyle = "#999";
+    cv.lineWidth = 2;
+    cv.font = "16px Calibri";
+    cv.fillStyle = "white";
+
+    cv.save();
+    cv.beginPath();
+    cv.fillStyle = "#999";
+    cv.arc(0, 18, 10, 0, 2 * Math.PI, true);
+    cv.fill();
+    cv.closePath();
+    cv.restore();
+
+    cv.fillText(count, 0, 23);
+
     this.a = function (pr, x) {
 
     }
@@ -58,43 +68,44 @@ function arc() {
     this.Next = function () {
         if (count >= size * 2 + 1) return 0;
         cv.beginPath();
-        cv.moveTo(prev.x, 0);
+        //cv.moveTo(prev.x, 0);
         let x, len;
         if (count % 2 == 0) {
             x = -count / 2 * scale;
-            len = (x - prev.x) / 4;
-            cv.bezierCurveTo(prev.x + len, count * -25, x - len, count * -25, x, 0);
+            len = (x - prev.x) / 2;
+            cv.arc(prev.x - Math.abs(len), 0, Math.abs(len), 0, Math.PI, false);
         } else {
             x = (count + 1) / 2 * scale;
-            len = (x - prev.x) / 4;
-            cv.bezierCurveTo(prev.x + len, count * 25, x - len, count * 25, x, 0);
+            len = (x - prev.x) / 2;
+            cv.arc(prev.x + Math.abs(len), 0, Math.abs(len), 0, Math.PI, true);
         }
         cv.stroke();
         cv.closePath();
-        // cv.beginPath();
-        // cv.fillText(count + 1, x, 20);
-        // cv.arc(x, 0, 5, 0, 2 * Math.PI, true);
-        // cv.fill();
+
+        cv.save();
+        cv.beginPath();
+        cv.fillStyle = "#999";
+        cv.arc(x, 18, 10, 0, 2 * Math.PI, true);
+        cv.fill();
+        cv.closePath();
+        cv.restore();
+
+        cv.fillText(count + 1, x, 23);
         prev.x = x;
         count++;
-
     }
 }
 
 function render() {
     //cv.fillStyle = 'white';
     //cv.fillRect(-450, -300, 900, 600);
-    cv.strokeStyle = "#999";
-    cv.lineWidth = 2;
-    cv.font = "16px Calibri";
-    cv.fillStyle = "blue";
     Arc.Next();
 }
 
 //cv.setLineDash([100, 100]);
 //cv.lineDashOffset = 90;
-var Arc = new arc();
 drawXAxis();
+var Arc = new arc();
 
 cvel.addEventListener('click', function () {
     render();
