@@ -1,0 +1,16 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background: #efefef;
+    font: 100 17px Calibri;
+    margin: 0;
+}
+
+canvas {
+    margin: 50px auto;
+    display: block;
+    background: white;
+    border-radius: 2px;
+}
