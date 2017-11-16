@@ -2,7 +2,7 @@
 
 var cvel = document.getElementById("canvas"); //Canvas element
 var cv = cvel.getContext("2d"); //2d context
-var size = 7; //размерность
+var size = 3; //размерность
 var h = cvel.offsetHeight;
 var w = cvel.offsetWidth - 40;
 var scale = w / (size * 2 + 1);
@@ -50,15 +50,23 @@ function arc() {
         x: 0,
         len: 0
     }
+    var corner = {
+        x: 0,
+        y: -29,
+        angle: 0,
+        newArc: true
+    }
     var count = 1,
-        step = 180 / 20,
+        step = 180 / 30,
         angle = 0,
-        animReady = -1;
+        animReady = -1,
+        opacity = 0;
 
     cv.strokeStyle = "#999";
     cv.lineWidth = 3;
     cv.font = "16px Calibri Light";
     cv.fillStyle = "white";
+    cv.rotate(0);
     drawCirWN(); //отрисовываем первый номер
 
     this.animateArc = function () {
@@ -68,7 +76,6 @@ function arc() {
             drawCirWN();
             prev.x = curr.x;
             angle = 0;
-            animReady = true;
             return 1;
         }
         //скрываем предыдущую дугу
@@ -82,6 +89,8 @@ function arc() {
         cv.stroke();
         cv.restore();
 
+        drawCorner(angle);
+
         //рисуем новую дугу
         cv.beginPath();
         if (count % 2 == 0)
@@ -90,19 +99,10 @@ function arc() {
             cv.arc(prev.x + Math.abs(curr.len), -29, Math.abs(curr.len), -Math.PI, -(Math.PI - (Math.PI / 180) * angle), false);
         cv.stroke();
 
+
         angle += step;
 
         window.requestAnimationFrame(Arc.animateArc);
-    }
-
-    function drawCirWN() {
-        cv.save();
-        cv.beginPath();
-        cv.fillStyle = "#507299";
-        cv.arc(curr.x, 21, 12, 0, 2 * Math.PI, true);
-        cv.fill();
-        cv.restore();
-        cv.fillText(count, curr.x, 26);
     }
 
     this.Next = function () {
@@ -122,15 +122,91 @@ function arc() {
 
         this.animateArc();
     }
+
+    function drawCorner(angle) {
+        if (angle > 180) return 1;
+        angle = (Math.PI / 180) * angle;
+        if (count % 2 == 0) {
+            var x = -(prev.x + curr.len) + Math.abs(curr.len) * Math.cos(angle);
+            var y = (39 + Math.abs(curr.len) * Math.sin(angle));
+        } else {
+            var x = (curr.x - curr.len) + Math.abs(curr.len) * Math.cos(Math.PI - angle);
+            var y = -(29 + Math.abs(curr.len) * Math.sin(Math.PI - angle));
+        }
+
+        if (corner.newArc) {
+            corner.x = x;
+            corner.y = y;
+            corner.angle = angle;
+            corner.newArc = false;
+        } else {
+            cv.save();
+            cv.translate(corner.x, corner.y);
+            cv.rotate(corner.angle);
+            cv.fillStyle = "white";
+            cv.beginPath();
+            if (count % 2 == 0) {
+                cv.moveTo(9, -5);
+                cv.lineTo(-9, -5);
+                cv.lineTo(0, 3);
+            } else {
+                cv.moveTo(-9, 5);
+                cv.lineTo(9, 5);
+                cv.lineTo(0, -3);
+            }
+            cv.fill();
+            cv.restore();
+        }
+
+        cv.save();
+        cv.translate(x, y);
+        cv.rotate(angle);
+        cv.fillStyle = "#999";
+        cv.beginPath();
+        if (count % 2 == 0) {
+            cv.moveTo(7, -4);
+            cv.lineTo(-7, -4);
+            cv.lineTo(0, 2);
+        } else {
+            cv.moveTo(-7, 4);
+            cv.lineTo(7, 4);
+            cv.lineTo(0, -2);
+        }
+        cv.fill();
+        cv.restore();
+        corner.x = x;
+        corner.y = y;
+        corner.angle = angle;
+        window.requestAnimationFrame(drawCorner);
+    }
+
+    function drawCirWN() {
+        if (opacity > 1) {
+            opacity = 0;
+            animReady = true;
+            corner.newArc = true;
+            return 1;
+        }
+        cv.save();
+        cv.beginPath();
+        cv.fillStyle = "white";
+        cv.arc(curr.x, 21, 12, 0, 2 * Math.PI, true);
+        cv.fill();
+        cv.beginPath();
+        cv.fillStyle = "rgba(80, 114, 153, " + opacity + ")";
+        cv.arc(curr.x, 21, 12, 0, 2 * Math.PI, true);
+        cv.fill();
+        cv.restore();
+        cv.fillText(count, curr.x, 26);
+        opacity += 0.2;
+        window.requestAnimationFrame(drawCirWN);
+    }
 }
 
-function render() {
-    Arc.Next();
-}
 
 drawXAxis();
 var Arc = new arc();
 
 cvel.addEventListener('click', function () {
-    render();
+    Arc.Next();
 });
