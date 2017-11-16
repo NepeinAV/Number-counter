@@ -2,12 +2,14 @@
 
 var cvel = document.getElementById("canvas"); //Canvas element
 var cv = cvel.getContext("2d"); //2d context
-var size = 3; //размерность
+var size = 5; //размерность
+//размер canvas
 var h = cvel.offsetHeight;
 var w = cvel.offsetWidth - 40;
-var scale = w / (size * 2 + 1);
+var scale = w / (size * 2 + 1); //масштаб оси
 
-cv.translate((w + 40) / 2, h / 2);
+cv.translate((w + 40) / 2, h / 2); //помещаем начало координат в середину
+cv.textAlign = "center";
 
 function drawXAxis() {
     let s;
@@ -15,7 +17,6 @@ function drawXAxis() {
     cv.strokeStyle = "#000";
     cv.fillStyle = "#000";
     cv.font = "16px Calibri Light";
-    cv.textAlign = "center";
     cv.beginPath();
     //ось
     cv.moveTo(-w / 2, 0);
@@ -27,22 +28,27 @@ function drawXAxis() {
     cv.lineTo(w / 2 + 5, 0);
     cv.fill();
     //координаты
+    cv.beginPath();
+    cv.moveTo(0, -3);
+    cv.lineTo(0, 3);
+    cv.fillText(0, 0, -11);
     for (var i = 0; i <= size; i++) {
         s = i * scale;
-        cv.beginPath();
         cv.moveTo(s, -3);
         cv.lineTo(s, 3);
         cv.fillText(i, s, -11);
-        if (i != 0) {
-            cv.moveTo(-s, -3);
-            cv.lineTo(-s, 3);
-            cv.fillText(-i, -s, -11);
-        }
-        cv.stroke();
+        cv.moveTo(-s, -3);
+        cv.lineTo(-s, 3);
+        cv.fillText(-i, -s, -11);
     }
+    cv.stroke();
 }
 
 function arc() {
+    var speed = {
+        opacity: 10,
+        angle: 40
+    }
     var prev = {
         x: 0
     }
@@ -56,51 +62,47 @@ function arc() {
         angle: 0,
         newArc: true
     }
-    var count = 1,
-        step = 180 / 30,
-        angle = 0,
-        animReady = -1,
+    var count = 1, //текущий номер
+        step = 180 / speed.angle, //шаг движения анимации
+        opstep = 1 / speed.opacity, //шаг анимации прозрачности
+        angle = 0, //текущий угол кривой
+        animReady = -1, //завершилась ли всяя запущенная анимация? -1 ни разу не запускалась 
         opacity = 0;
 
     cv.strokeStyle = "#999";
+    cv.fillStyle = "white";
     cv.lineWidth = 3;
     cv.font = "16px Calibri Light";
-    cv.fillStyle = "white";
-    cv.rotate(0);
     drawCirWN(); //отрисовываем первый номер
 
-    this.animateArc = function () {
+    this.animateArc = function () { //рисуем и аниммируем дугу
         //выходим, если угол становится больше 180 градусов
         if (angle > 180) {
             count++;
-            drawCirWN();
+            drawCirWN(); //отрисовываем номер
             prev.x = curr.x;
             angle = 0;
             return 1;
         }
+
         //скрываем предыдущую дугу
         cv.beginPath();
         cv.save();
         cv.strokeStyle = 'white';
-        if (count % 2 == 0)
-            cv.arc(prev.x - Math.abs(curr.len), 39, Math.abs(curr.len), (Math.PI / 180) * angle, 0, true);
-        else
-            cv.arc(prev.x + Math.abs(curr.len), -29, Math.abs(curr.len), -Math.PI, -(Math.PI - (Math.PI / 180) * angle), false);
+        if (count % 2 == 0) cv.arc(prev.x - curr.len, 39, curr.len, (Math.PI / 180) * angle, 0, true);
+        else cv.arc(prev.x + curr.len, -29, curr.len, -Math.PI, -(Math.PI - (Math.PI / 180) * angle), false);
         cv.stroke();
         cv.restore();
 
-        drawCorner(angle);
+        drawCorner(angle); //рисуем угол
 
         //рисуем новую дугу
         cv.beginPath();
-        if (count % 2 == 0)
-            cv.arc(prev.x - Math.abs(curr.len), 39, Math.abs(curr.len), (Math.PI / 180) * angle, 0, true);
-        else
-            cv.arc(prev.x + Math.abs(curr.len), -29, Math.abs(curr.len), -Math.PI, -(Math.PI - (Math.PI / 180) * angle), false);
+        if (count % 2 == 0) cv.arc(prev.x - curr.len, 39, curr.len, (Math.PI / 180) * angle, 0, true);
+        else cv.arc(prev.x + curr.len, -29, curr.len, -Math.PI, -(Math.PI - (Math.PI / 180) * angle), false);
         cv.stroke();
 
-
-        angle += step;
+        angle += step; //увеличиваем угол
 
         window.requestAnimationFrame(Arc.animateArc);
     }
@@ -110,16 +112,11 @@ function arc() {
         if (!animReady) return 1;
         animReady = false;
         let x, len;
-        if (count % 2 == 0) {
-            x = -count / 2 * scale;
-            len = (x - prev.x) / 2;
-        } else {
-            x = (count + 1) / 2 * scale;
-            len = (x - prev.x) / 2;
-        }
+        if (count % 2 == 0) x = -count / 2 * scale;
+        else x = (count + 1) / 2 * scale;
+        len = Math.abs((x - prev.x) / 2);
         curr.x = x;
         curr.len = len;
-
         this.animateArc();
     }
 
@@ -127,11 +124,11 @@ function arc() {
         if (angle > 180) return 1;
         angle = (Math.PI / 180) * angle;
         if (count % 2 == 0) {
-            var x = -(prev.x + curr.len) + Math.abs(curr.len) * Math.cos(angle);
-            var y = (39 + Math.abs(curr.len) * Math.sin(angle));
+            var x = -(prev.x - curr.len) + curr.len * Math.cos(angle);
+            var y = 39 + curr.len * Math.sin(angle);
         } else {
-            var x = (curr.x - curr.len) + Math.abs(curr.len) * Math.cos(Math.PI - angle);
-            var y = -(29 + Math.abs(curr.len) * Math.sin(Math.PI - angle));
+            var x = (curr.x - curr.len) + curr.len * Math.cos(Math.PI - angle);
+            var y = -(29 + curr.len * Math.sin(Math.PI - angle));
         }
 
         if (corner.newArc) {
@@ -174,9 +171,11 @@ function arc() {
         }
         cv.fill();
         cv.restore();
+
         corner.x = x;
         corner.y = y;
         corner.angle = angle;
+
         window.requestAnimationFrame(drawCorner);
     }
 
@@ -188,17 +187,19 @@ function arc() {
             return 1;
         }
         cv.save();
+        //скрываем предыдущий круг
         cv.beginPath();
         cv.fillStyle = "white";
         cv.arc(curr.x, 21, 12, 0, 2 * Math.PI, true);
         cv.fill();
+        //рисуем новый с учётом прозрачности
         cv.beginPath();
         cv.fillStyle = "rgba(80, 114, 153, " + opacity + ")";
         cv.arc(curr.x, 21, 12, 0, 2 * Math.PI, true);
         cv.fill();
         cv.restore();
-        cv.fillText(count, curr.x, 26);
-        opacity += 0.2;
+        cv.fillText(count, curr.x, 26); //пишем порядковый номер
+        opacity += opstep;
         window.requestAnimationFrame(drawCirWN);
     }
 }
@@ -207,6 +208,6 @@ function arc() {
 drawXAxis();
 var Arc = new arc();
 
-cvel.addEventListener('click', function () {
+document.addEventListener('click', function () {
     Arc.Next();
 });
