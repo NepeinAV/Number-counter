@@ -2,7 +2,7 @@
 
 var cvel = document.getElementById("canvas"); //Canvas element
 var cv = cvel.getContext("2d"); //2d context
-var size = 5; //размерность
+var size = 3; //размерность
 //размер canvas
 var h = cvel.offsetHeight;
 var w = cvel.offsetWidth - 40;
@@ -58,12 +58,12 @@ function arc() {
     }
     var corner = {
         x: 0,
-        y: -29,
+        y: 0,
         angle: 0,
         newArc: true
     }
     var count = 1, //текущий номер
-        step = 180 / speed.angle, //шаг движения анимации
+        step = Math.PI / speed.angle, //шаг движения анимации
         opstep = 1 / speed.opacity, //шаг анимации прозрачности
         angle = 0, //текущий угол кривой
         animReady = -1, //завершилась ли всяя запущенная анимация? -1 ни разу не запускалась 
@@ -77,7 +77,7 @@ function arc() {
 
     this.animateArc = function () { //рисуем и аниммируем дугу
         //выходим, если угол становится больше 180 градусов
-        if (angle > 180) {
+        if (angle > Math.PI) {
             count++;
             drawCirWN(); //отрисовываем номер
             prev.x = curr.x;
@@ -89,8 +89,8 @@ function arc() {
         cv.beginPath();
         cv.save();
         cv.strokeStyle = 'white';
-        if (count % 2 == 0) cv.arc(prev.x - curr.len, 39, curr.len, (Math.PI / 180) * angle, 0, true);
-        else cv.arc(prev.x + curr.len, -29, curr.len, -Math.PI, -(Math.PI - (Math.PI / 180) * angle), false);
+        if (count % 2 == 0) cv.arc(prev.x - curr.len, 39, curr.len, angle, 0, true);
+        else cv.arc(prev.x + curr.len, -29, curr.len, -Math.PI, -Math.PI + angle, false);
         cv.stroke();
         cv.restore();
 
@@ -98,8 +98,8 @@ function arc() {
 
         //рисуем новую дугу
         cv.beginPath();
-        if (count % 2 == 0) cv.arc(prev.x - curr.len, 39, curr.len, (Math.PI / 180) * angle, 0, true);
-        else cv.arc(prev.x + curr.len, -29, curr.len, -Math.PI, -(Math.PI - (Math.PI / 180) * angle), false);
+        if (count % 2 == 0) cv.arc(prev.x - curr.len, 39, curr.len, angle, 0, true);
+        else cv.arc(prev.x + curr.len, -29, curr.len, -Math.PI, -Math.PI + angle, false);
         cv.stroke();
 
         angle += step; //увеличиваем угол
@@ -108,9 +108,8 @@ function arc() {
     }
 
     this.Next = function () {
-        if (count >= size * 2 + 1) return 1;
-        if (!animReady) return 1;
-        animReady = false;
+        if (count >= size * 2 + 1 || !animReady) return 1;
+        animReady = 0;
         let x, len;
         if (count % 2 == 0) x = -count / 2 * scale;
         else x = (count + 1) / 2 * scale;
@@ -120,9 +119,25 @@ function arc() {
         this.animateArc();
     }
 
+    function setCorner(coordsTop, coordsBottom, fillColor, x, y, angle) {
+        cv.translate(x, y);
+        cv.rotate(angle);
+        cv.fillStyle = fillColor;
+        cv.beginPath();
+        if (count % 2 == 0) {
+            cv.moveTo(coordsBottom[0], coordsBottom[1]);
+            cv.lineTo(coordsBottom[2], coordsBottom[3]);
+            cv.lineTo(coordsBottom[4], coordsBottom[5]);
+        } else {
+            cv.moveTo(coordsTop[0], coordsTop[1]);
+            cv.lineTo(coordsTop[2], coordsTop[3]);
+            cv.lineTo(coordsTop[4], coordsTop[5]);
+        }
+    }
+
     function drawCorner(angle) {
-        if (angle > 180) return 1;
-        angle = (Math.PI / 180) * angle;
+        if (angle > Math.PI) return 1;
+        //высчитываем координаты нового уголка x0 + r*cos(a)/y0 + r*sin(a)
         if (count % 2 == 0) {
             var x = -(prev.x - curr.len) + curr.len * Math.cos(angle);
             var y = 39 + curr.len * Math.sin(angle);
@@ -130,45 +145,21 @@ function arc() {
             var x = (curr.x - curr.len) + curr.len * Math.cos(Math.PI - angle);
             var y = -(29 + curr.len * Math.sin(Math.PI - angle));
         }
-
+        //если дуга новая, то устанавливаем сохраняем параметры начального положения уголка
         if (corner.newArc) {
             corner.x = x;
             corner.y = y;
             corner.angle = angle;
             corner.newArc = false;
-        } else {
+        } else { //иначе скрываем предыдущий уголок
             cv.save();
-            cv.translate(corner.x, corner.y);
-            cv.rotate(corner.angle);
-            cv.fillStyle = "white";
-            cv.beginPath();
-            if (count % 2 == 0) {
-                cv.moveTo(9, -5);
-                cv.lineTo(-9, -5);
-                cv.lineTo(0, 3);
-            } else {
-                cv.moveTo(-9, 5);
-                cv.lineTo(9, 5);
-                cv.lineTo(0, -3);
-            }
+            setCorner([-9, 5, 9, 5, 0, -3], [9, -5, -9, -5, 0, 3], "white", corner.x, corner.y, corner.angle);
             cv.fill();
             cv.restore();
         }
 
         cv.save();
-        cv.translate(x, y);
-        cv.rotate(angle);
-        cv.fillStyle = "#999";
-        cv.beginPath();
-        if (count % 2 == 0) {
-            cv.moveTo(7, -4);
-            cv.lineTo(-7, -4);
-            cv.lineTo(0, 2);
-        } else {
-            cv.moveTo(-7, 4);
-            cv.lineTo(7, 4);
-            cv.lineTo(0, -2);
-        }
+        setCorner([-7, 4, 7, 4, 0, -2], [7, -4, -7, -4, 0, 2], "#999", x, y, angle);
         cv.fill();
         cv.restore();
 
@@ -182,7 +173,7 @@ function arc() {
     function drawCirWN() {
         if (opacity > 1) {
             opacity = 0;
-            animReady = true;
+            animReady = 1;
             corner.newArc = true;
             return 1;
         }
