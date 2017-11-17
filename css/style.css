@@ -14,3 +14,23 @@ canvas {
     background: white;
     border-radius: 2px;
 }
+
+.imp {
+    position: absolute;
+    left: calc(50% - 249px);
+    top: 525px;
+    padding: 10px 15px;
+    width: 250px;
+    border: 1px solid black;
+    z-index: 1;
+}
+
+.corner {
+    border: 15px solid transparent;
+    border-left: 15px solid black;
+    transform: rotateZ(45deg);
+    position: absolute;
+    right: -16px;
+    top: -16px;
+    z-index: 0;
+}

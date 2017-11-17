@@ -7,6 +7,8 @@ var size = 3; //размерность
 var h = cvel.offsetHeight;
 var w = cvel.offsetWidth - 40;
 var scale = w / (size * 2 + 1); //масштаб оси
+var el = document.querySelector(".imp>span");
+var elc = document.querySelector(".corner");
 
 cv.translate((w + 40) / 2, h / 2); //помещаем начало координат в середину
 cv.textAlign = "center";
@@ -27,6 +29,10 @@ function drawXAxis() {
     cv.lineTo(w / 2, 5);
     cv.lineTo(w / 2 + 5, 0);
     cv.fill();
+    cv.save();
+    cv.font = "20px Calibri Light";
+    cv.fillText("x", w / 2, 20);
+    cv.restore();
     //координаты
     cv.beginPath();
     cv.moveTo(0, -3);
@@ -117,6 +123,7 @@ function arc() {
         curr.x = x;
         curr.len = len;
         this.animateArc();
+        title(count);
     }
 
     function setCorner(coordsTop, coordsBottom, fillColor, x, y, angle) {
@@ -195,6 +202,27 @@ function arc() {
     }
 }
 
+function title(count) {
+    if (count > 2) {
+        el.parentNode.style.display = "none";
+        return 1;
+    }
+    var titles = {
+        1: {
+            text: "Нумеруем наименьшее положительное непронумерованное число",
+            x: 323,
+            y: 451
+        },
+        2: {
+            text: "Нумеруем число противоположное предыдущему",
+            x: 80,
+            y: 240
+        }
+    }
+    el.innerHTML = titles[count].text;
+    el.parentNode.style = "top: " + (cvel.offsetTop + titles[count].y + el.offsetHeight) + "px; " + "left: " + (cvel.offsetLeft + titles[count].x) + "px";
+    if (count == 2) elc.style = "bottom: -16px; transform: rotateZ(-45deg); top: auto";
+}
 
 drawXAxis();
 var Arc = new arc();
