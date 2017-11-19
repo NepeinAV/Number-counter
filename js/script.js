@@ -7,8 +7,9 @@ var size = 3; //размерность
 var h = cvel.offsetHeight;
 var w = cvel.offsetWidth - 40;
 var scale = w / (size * 2 + 1); //масштаб оси
-var el = document.querySelector(".imp>span");
 var elc = document.querySelector(".corner");
+var centerY = cvel.getBoundingClientRect().top + h / 2;
+var centerX = cvel.getBoundingClientRect().left + w / 2 + 20;
 
 cv.translate((w + 40) / 2, h / 2); //помещаем начало координат в середину
 cv.textAlign = "center";
@@ -53,7 +54,7 @@ function drawXAxis() {
 function arc() {
     var speed = {
         opacity: 10,
-        angle: 40
+        angle: 20
     }
     var prev = {
         x: 0
@@ -80,6 +81,7 @@ function arc() {
     cv.lineWidth = 3;
     cv.font = "16px Calibri Light";
     drawCirWN(); //отрисовываем первый номер
+    title(0);
 
     this.animateArc = function () { //рисуем и аниммируем дугу
         //выходим, если угол становится больше 180 градусов
@@ -203,26 +205,38 @@ function arc() {
 }
 
 function title(count) {
+    var el = document.querySelector(".imp>span");
     if (count > 2) {
         el.parentNode.style.display = "none";
         return 1;
     }
     var titles = {
+        0: {
+            text: "Нумерация начинается с нуля",
+            pos: [0, "b"]
+        },
         1: {
             text: "Наименьшее положительное непронумерованное число",
-            x: 323,
-            y: 473
+            pos: [1, "b"]
         },
         2: {
             text: "Число противоположное предыдущему",
-            x: 80,
-            y: 280
-        }
+            pos: [-1, "t"]
+        },
     }
     el.innerHTML = titles[count].text;
-    el.parentNode.style = "top: " + (cvel.offsetTop + titles[count].y + el.offsetHeight) + "px; " + "left: " + (cvel.offsetLeft + titles[count].x) + "px";
-    if (count == 2) elc.style = "bottom: -16px; transform: rotateZ(-45deg); top: auto";
+    let x, y;
+    x = centerX - el.parentNode.offsetWidth + 2 + scale * titles[count].pos[0];
+    if (titles[count].pos[1] == "b") {
+        y = centerY + 35 + 32;
+        elc.style = "bottom: auto; transform: rotateZ(45deg); top: -16px; ";
+    } else if (titles[count].pos[1] == "t") {
+        y = centerY - el.offsetHeight - 22 - 16 - 35;
+        elc.style = "bottom: -16px; transform: rotateZ(-45deg); top: auto; ";
+    }
+    el.parentNode.style = "top: " + y + "px; " + "left: " + x + "px";
 }
+
 
 drawXAxis();
 var Arc = new arc();

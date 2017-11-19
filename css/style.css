@@ -6,24 +6,23 @@ body {
     background: #fff;
     font: 100 17px Calibri;
     margin: 0;
+    padding: 0;
 }
 
 canvas {
-    margin: 10px auto;
+    margin: 0 auto;
     display: block;
     background: white;
-    border-radius: 2px;
 }
 
 .imp {
     position: absolute;
-    left: calc(50% - 249px);
-    top: 525px;
     padding: 10px 15px;
     width: 250px;
     border: 1px solid black;
     z-index: 1;
     transition: all 0.3s ease-in-out;
+    background: inherit;
 }
 
 .corner {
