@@ -45,6 +45,7 @@ input[type=text] {
     background: inherit;
     cursor: default;
     -webkit-user-select: none;
+    user-select: none;
 }
 
 .corner {
