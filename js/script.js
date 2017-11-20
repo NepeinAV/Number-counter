@@ -235,12 +235,9 @@ function setTitle() {
     imp.style = "top: " + y + "px; " + "left: " + x + "px";
 }
 
-function reInit() {
+function reInit(s) {
     cv.clearRect(-w / 2 - 20, -h / 2, w + 40, h);
-    if (Number.parseInt(range.value) > 5)
-        size = 5;
-    else
-        size = Math.abs(Number.parseInt(range.value));
+    size = Math.abs(s);
     scale = w / (size * 2 + 1);
     count = 0;
     drawXAxis();
@@ -251,18 +248,21 @@ function reInit() {
 cv.translate((w + 40) / 2, h / 2); //помещаем начало координат в середину
 cv.textAlign = "center";
 size = 3;
+range.value = size;
 scale = w / (size * 2 + 1)
 drawXAxis();
 Arc = new arc();
 
 range.addEventListener('input', function () {
-    if (!isNaN(Number.parseInt(range.value)))
-        reInit();
+    let s = Number.parseInt(range.value);
+    if (!isNaN(s))
+        if (s <= 8 && s != size)
+            reInit(s);
 })
 
 document.addEventListener('click', function (e) {
     let el = e.target;
-    while (el.tagName != "BODY") {
+    while (el.tagName != "HTML") {
         if (el.tagName == "CANVAS" || el.id == "imp") {
             Arc.Next();
             break;
