@@ -35,12 +35,19 @@ class Title {
         imp.querySelector('span').innerHTML = this.titles[count].text;
         let x, y;
         x = centerX - impW + scale * this.titles[count].pos[0];
+        if (x < 0) {
+            x += impW;
+            this.titles[count].pos[1] = "lb"
+        }
         if (this.titles[count].pos[1] == "b") {
             y = centerY + 35 + 32;
             elc.style = "bottom: auto; transform: rotateZ(45deg); top: -16px; ";
         } else if (this.titles[count].pos[1] == "t") {
             y = centerY - imp.offsetHeight - 16 - 38;
             elc.style = "bottom: -16px; transform: rotateZ(-45deg); top: auto; ";
+        } else if (this.titles[count].pos[1] == "lb") {
+            y = centerY - imp.offsetHeight - 16 - 38;
+            elc.style = "bottom: -16px; transform: scaleX(-1) rotateZ(-45deg); left: -16px; top: auto; right: auto ";
         }
         imp.style = "top: " + y + "px; " + "left: " + x + "px";
     }
@@ -257,6 +264,7 @@ class Initialize {
     }
 
     static reInit(s) {
+        if (s > 8) s = 8;
         cv.clearRect(-w / 2 - 20, -h / 2, w + 40, h);
         new Initialize(s);
         Initialize.initCanvasProps();
@@ -272,7 +280,7 @@ Initialize.initCanvasProps();
 range.addEventListener('input', function () {
     let s = Number.parseInt(range.value);
     if (!isNaN(s))
-        if (s <= 8 && s != size)
+        if (s != size)
             Initialize.reInit(s);
 });
 
@@ -285,6 +293,7 @@ document.addEventListener('click', function (e) {
     while (el.tagName != "HTML") {
         if (el.tagName == "CANVAS" || el.id == "imp") {
             DrawC.Next();
+            document.getElementById("open").checked = false;
             break;
         } else {
             el = el.parentNode;

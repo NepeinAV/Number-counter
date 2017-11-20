@@ -44,7 +44,7 @@ input[type=text] {
     transition: all 0.3s ease-in-out;
     background: inherit;
     cursor: default;
-    user-select: none;
+    -webkit-user-select: none;
 }
 
 .corner {
@@ -102,6 +102,7 @@ label[for=title] {
     width: 280px;
     padding: 15px;
     border: 1px solid black;
+    background: white;
 }
 
 #settings span {
