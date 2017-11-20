@@ -4,9 +4,10 @@
 
 body {
     background: #fff;
-    font: 100 17px Calibri;
+    font: 100 17px Calibri, Arial;
     margin: 0;
     padding: 0;
+    overflow-y: hidden;
 }
 
 canvas {
@@ -15,7 +16,26 @@ canvas {
     background: white;
 }
 
-.imp {
+input {
+    outline: none;
+}
+
+input[type=checkbox] {
+    display: none;
+}
+
+label {
+    cursor: pointer
+}
+
+input[type=text] {
+    border: 1px solid black;
+    padding: 6px 10px;
+    font: inherit;
+    width: 100%;
+}
+
+#imp {
     position: absolute;
     padding: 10px 15px;
     width: 250px;
@@ -23,6 +43,8 @@ canvas {
     z-index: 1;
     transition: all 0.3s ease-in-out;
     background: inherit;
+    cursor: default;
+    user-select: none;
 }
 
 .corner {
@@ -33,4 +55,107 @@ canvas {
     right: -16px;
     top: -16px;
     z-index: 0;
+}
+
+label[for=title] {
+    margin-top: 10px;
+    display: block;
+}
+
+#open+label {
+    width: 40px;
+    height: 40px;
+    display: block;
+    background: rgb(80, 114, 153) url(../img/settings.svg) 50% 50%/71% no-repeat;
+    position: fixed;
+    z-index: 2;
+    border-radius: 2px;
+    margin: 10px;
+}
+
+#open+label:hover {
+    width: 40px;
+    height: 40px;
+    display: block;
+    background: #2a5885 url(../img/settings.svg) 50% 50%/71% no-repeat;
+    position: fixed;
+    z-index: 2;
+    border-radius: 2px;
+    margin: 10px;
+}
+
+#settings {
+    display: none;
+    position: fixed;
+    z-index: 2;
+    left: 67px;
+    top: 10px;
+    width: 280px;
+    padding: 15px;
+    border: 1px solid black;
+}
+
+#settings span {
+    display: block;
+    font-weight: 600;
+    margin: -4px 0 7px 0;
+}
+
+#settings .corner {
+    right: auto;
+    top: 9px;
+    transform: rotateZ(180deg);
+    left: -20px;
+    border: 10px solid transparent;
+    border-left: 10px solid black;
+}
+
+#open:checked~#settings {
+    display: block;
+    animation: fadeIn 0.2s ease-in-out both;
+}
+
+#open:checked+label {
+    background: #2a5885 url(../img/settings.svg) 50% 50%/71% no-repeat;
+}
+
+
+/*
+#title+label:before {
+    content: '';
+    border-radius: 25px;
+    width: 34px;
+    height: 20px;
+    display: inline-block;
+    border: 1px solid black;
+    margin-bottom: -5px;
+    margin-right: 6px;
+}
+
+#title+label:after {
+    content: '';
+    position: absolute;
+    padding: 2px;
+    width: 10px;
+    height: 10px;
+    background: black;
+    left: 20px;
+    margin-top: 4px;
+    border-radius: 100%;
+    transition: all 0.2s ease-in-out;
+}
+
+#title:checked+label:after {
+    left: 32px;
+}*/
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        margin-left: 20px;
+    }
+    to {
+        opacity: 1;
+        margin-left: 0px;
+    }
 }

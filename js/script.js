@@ -6,13 +6,11 @@ var size = 3; //размерность
 //размер canvas
 var h = cvel.offsetHeight;
 var w = cvel.offsetWidth - 40;
-var scale = w / (size * 2 + 1); //масштаб оси
-var elc = document.querySelector(".corner");
+var scale; //масштаб 
 var centerY = cvel.getBoundingClientRect().top + h / 2;
 var centerX = cvel.getBoundingClientRect().left + w / 2 + 20;
-
-cv.translate((w + 40) / 2, h / 2); //помещаем начало координат в середину
-cv.textAlign = "center";
+var count = 0; //текущий номер 
+var Arc; //методы дуги
 
 function drawXAxis() {
     let s;
@@ -69,19 +67,18 @@ function arc() {
         angle: 0,
         newArc: true
     }
-    var count = 1, //текущий номер
-        step = Math.PI / speed.angle, //шаг движения анимации
+    var step = Math.PI / speed.angle, //шаг движения анимации
         opstep = 1 / speed.opacity, //шаг анимации прозрачности
         angle = 0, //текущий угол кривой
-        animReady = -1, //завершилась ли всяя запущенная анимация? -1 ни разу не запускалась 
+        animReady = -1, //завершилась ли вся запущенная анимация? -1 ни разу не запускалась 
         opacity = 0;
-
     cv.strokeStyle = "#999";
     cv.fillStyle = "white";
     cv.lineWidth = 3;
     cv.font = "16px Calibri Light";
     drawCirWN(); //отрисовываем первый номер
-    title(0);
+    setTitle();
+    count = 1; //текущий номер    
 
     this.animateArc = function () { //рисуем и аниммируем дугу
         //выходим, если угол становится больше 180 градусов
@@ -125,7 +122,7 @@ function arc() {
         curr.x = x;
         curr.len = len;
         this.animateArc();
-        title(count);
+        setTitle();
     }
 
     function setCorner(coordsTop, coordsBottom, fillColor, x, y, angle) {
@@ -154,7 +151,7 @@ function arc() {
             var x = (curr.x - curr.len) + curr.len * Math.cos(Math.PI - angle);
             var y = -(29 + curr.len * Math.sin(Math.PI - angle));
         }
-        //если дуга новая, то устанавливаем сохраняем параметры начального положения уголка
+        //если дуга новая, то сохраняем параметры начального положения уголка
         if (corner.newArc) {
             corner.x = x;
             corner.y = y;
@@ -204,10 +201,11 @@ function arc() {
     }
 }
 
-function title(count) {
-    var el = document.querySelector(".imp>span");
+var elc = document.querySelector("#imp .corner");
+
+function setTitle() {
     if (count > 2) {
-        el.parentNode.style.display = "none";
+        imp.style.display = "none";
         return 1;
     }
     var titles = {
@@ -224,23 +222,52 @@ function title(count) {
             pos: [-1, "t"]
         },
     }
-    el.innerHTML = titles[count].text;
+    imp.querySelector('span').innerHTML = titles[count].text;
     let x, y;
-    x = centerX - el.parentNode.offsetWidth + 2 + scale * titles[count].pos[0];
+    x = centerX - imp.offsetWidth + scale * titles[count].pos[0];
     if (titles[count].pos[1] == "b") {
         y = centerY + 35 + 32;
         elc.style = "bottom: auto; transform: rotateZ(45deg); top: -16px; ";
     } else if (titles[count].pos[1] == "t") {
-        y = centerY - el.offsetHeight - 22 - 16 - 35;
+        y = centerY - imp.offsetHeight - 16 - 38;
         elc.style = "bottom: -16px; transform: rotateZ(-45deg); top: auto; ";
     }
-    el.parentNode.style = "top: " + y + "px; " + "left: " + x + "px";
+    imp.style = "top: " + y + "px; " + "left: " + x + "px";
 }
 
+function reInit() {
+    cv.clearRect(-w / 2 - 20, -h / 2, w + 40, h);
+    if (Number.parseInt(range.value) > 5)
+        size = 5;
+    else
+        size = Math.abs(Number.parseInt(range.value));
+    scale = w / (size * 2 + 1);
+    count = 0;
+    drawXAxis();
+    Arc = new arc();
+}
 
+//инициализация стандартных значений и свойств, отрисовка
+cv.translate((w + 40) / 2, h / 2); //помещаем начало координат в середину
+cv.textAlign = "center";
+size = 3;
+scale = w / (size * 2 + 1)
 drawXAxis();
-var Arc = new arc();
+Arc = new arc();
 
-document.addEventListener('click', function () {
-    Arc.Next();
+range.addEventListener('input', function () {
+    if (!isNaN(Number.parseInt(range.value)))
+        reInit();
+})
+
+document.addEventListener('click', function (e) {
+    let el = e.target;
+    while (el.tagName != "BODY") {
+        if (el.tagName == "CANVAS" || el.id == "imp") {
+            Arc.Next();
+            break;
+        } else {
+            el = el.parentNode;
+        }
+    }
 });
