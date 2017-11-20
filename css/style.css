@@ -128,36 +128,6 @@ label[for=title] {
     background: #2a5885 url(../img/settings.svg) 50% 50%/71% no-repeat;
 }
 
-
-/*
-#title+label:before {
-    content: '';
-    border-radius: 25px;
-    width: 34px;
-    height: 20px;
-    display: inline-block;
-    border: 1px solid black;
-    margin-bottom: -5px;
-    margin-right: 6px;
-}
-
-#title+label:after {
-    content: '';
-    position: absolute;
-    padding: 2px;
-    width: 10px;
-    height: 10px;
-    background: black;
-    left: 20px;
-    margin-top: 4px;
-    border-radius: 100%;
-    transition: all 0.2s ease-in-out;
-}
-
-#title:checked+label:after {
-    left: 32px;
-}*/
-
 @keyframes fadeIn {
     from {
         opacity: 0;
