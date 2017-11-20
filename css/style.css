@@ -62,6 +62,22 @@ label[for=title] {
     display: block;
 }
 
+#refresh {
+    width: 40px;
+    height: 40px;
+    background: rgb(80, 114, 153) url(../img/reload.svg) 50% 50%/71% no-repeat;
+    position: fixed;
+    z-index: 2;
+    border-radius: 2px;
+    margin: 10px;
+    top: 50px;
+    cursor: pointer;
+}
+
+#refresh:hover {
+    background: #2a5885 url(../img/reload.svg) 50% 50%/71% no-repeat;
+}
+
 #open+label {
     width: 40px;
     height: 40px;
@@ -74,14 +90,7 @@ label[for=title] {
 }
 
 #open+label:hover {
-    width: 40px;
-    height: 40px;
-    display: block;
     background: #2a5885 url(../img/settings.svg) 50% 50%/71% no-repeat;
-    position: fixed;
-    z-index: 2;
-    border-radius: 2px;
-    margin: 10px;
 }
 
 #settings {
