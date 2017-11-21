@@ -27,7 +27,7 @@ label {
     cursor: pointer
 }
 
-input[type=text] {
+input[type=number] {
     border: 1px solid #666;
     padding: 6px 10px;
     font: inherit;

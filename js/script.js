@@ -4,12 +4,13 @@ var cvel = document.getElementById("canvas"), //Canvas element
     cv = cvel.getContext("2d"), //2d context
     impW = 250,
     elc = document.querySelector("#imp .corner"), //уголок элемента imp
-    size, //размерность
     h, w, //размер canvas
     scale, //масштаб 
     centerY, centerX, //центр холста
     count, //текущий номер 
-    config;
+    config,
+    animCir,
+    animArc;
 
 var DrawC, DrawArcC, TitleC; //классы
 
@@ -17,26 +18,24 @@ const fs = require("fs"); //filesystem lib node.js
 
 class Title {
     constructor() {
-        this.tips = new Object();
         this.count = 0;
     }
 
     setTitle() {
         let pos = (count + 1) % 2;
         pos == 1 ? pos = ~~(-(count + 1) / 2) : pos = ~~((count + 1) / 2);
-        if (this.count > this.tips.length - 1 || this.tips[pos] == undefined) {
+        if (this.count > config.tips.length - 1 || config.tips[pos] == undefined) {
             imp.style = "display: none";
             imp.className = "";
             return 1;
         }
 
-        //imp.className = "";
         imp.style.display = "block";
-        imp.querySelector('span').innerHTML = this.tips[pos].text;
+        imp.querySelector('span').innerHTML = config.tips[pos].text;
 
         let x, y;
         x = centerX - impW + scale * pos;
-        if (this.tips[pos].loc == "b") {
+        if (config.tips[pos].loc == "b") {
             if (x < 0) {
                 x += impW;
                 elc.style = "bottom: auto; right:auto; transform: scaleX(-1) rotateZ(45deg); top: -16px; left: -16px";
@@ -63,7 +62,7 @@ class Draw {
     constructor() {
         this.speed = {
             opacity: 10,
-            angle: 20
+            angle: 35
         }
         this.prev = {
             x: 0
@@ -90,7 +89,7 @@ class Draw {
         cv.lineWidth = 2;
         cv.strokeStyle = "#000";
         cv.fillStyle = "#000";
-        cv.font = "16px Calibri";
+        cv.font = "16px Calibri Light";
         cv.beginPath();
         //ось
         cv.moveTo(-w / 2, 0);
@@ -110,7 +109,7 @@ class Draw {
         cv.moveTo(0, -3);
         cv.lineTo(0, 3);
         cv.fillText(0, 0, -11);
-        for (var i = 0; i <= size; i++) {
+        for (var i = 0; i <= config.size; i++) {
             s = i * scale;
             cv.moveTo(s, -3);
             cv.lineTo(s, 3);
@@ -123,14 +122,16 @@ class Draw {
     }
 
     Next() {
-        if (count >= size * 2 + 1 || !this.animReady) return 1;
+        if (count >= config.size * 2 + 1 || !this.animReady) return 1;
         this.animReady = 0;
         let x, len;
         if (count % 2 == 0) x = -count / 2 * scale;
         else x = (count + 1) / 2 * scale;
         len = Math.abs((x - this.prev.x) / 2);
-        this.curr.x = x;
-        this.curr.len = len;
+        this.curr = {
+            x: x,
+            len: len
+        }
         DrawArcC.animateArc();
         TitleC.setTitle();
     }
@@ -157,7 +158,7 @@ class Draw {
         cv.fillText(count, DrawC.curr.x, 26); //пишем порядковый номер
         cv.restore();
         DrawC.opacity += DrawC.opstep;
-        window.requestAnimationFrame(DrawC.drawCirWN);
+        animCir = window.requestAnimationFrame(DrawC.drawCirWN);
     }
 }
 
@@ -177,71 +178,74 @@ class DrawArc {
         cv.beginPath();
         cv.save();
         cv.strokeStyle = 'white';
-        if (count % 2 == 0) cv.arc(DrawC.prev.x - DrawC.curr.len, 39, DrawC.curr.len, DrawC.angle, 0, true);
-        else cv.arc(DrawC.prev.x + DrawC.curr.len, -29, DrawC.curr.len, -Math.PI, -Math.PI + DrawC.angle, false);
+        if (count % 2 == 0)
+            cv.arc(DrawC.prev.x - DrawC.curr.len, 39, DrawC.curr.len, DrawC.angle, 0, true);
+        else
+            cv.arc(DrawC.prev.x + DrawC.curr.len, -29, DrawC.curr.len, -Math.PI, -Math.PI + DrawC.angle, false);
         cv.stroke();
         cv.restore();
 
-        DrawArcC.drawCorner(DrawC.angle); //рисуем угол
+        DrawArcC.drawCorner(); //рисуем угол
 
         //рисуем новую дугу
         cv.beginPath();
         cv.strokeStyle = "#999";
-        if (count % 2 == 0) cv.arc(DrawC.prev.x - DrawC.curr.len, 39, DrawC.curr.len, DrawC.angle, 0, true);
-        else cv.arc(DrawC.prev.x + DrawC.curr.len, -29, DrawC.curr.len, -Math.PI, -Math.PI + DrawC.angle, false);
+        if (count % 2 == 0)
+            cv.arc(DrawC.prev.x - DrawC.curr.len, 39, DrawC.curr.len, DrawC.angle, 0, true);
+        else
+            cv.arc(DrawC.prev.x + DrawC.curr.len, -29, DrawC.curr.len, -Math.PI, -Math.PI + DrawC.angle, false);
         cv.stroke();
 
         DrawC.angle += DrawC.step; //увеличиваем угол
 
-        window.requestAnimationFrame(DrawArcC.animateArc);
+        animArc = window.requestAnimationFrame(DrawArcC.animateArc);
     }
 
-    setCorner(coordsTop, coordsBottom, fillColor, x, y, angle) {
+    setCorner(coords, fillColor, x, y, angle) {
         cv.translate(x, y);
         cv.rotate(angle);
         cv.fillStyle = fillColor;
         cv.beginPath();
-        if (count % 2 == 0) {
-            cv.moveTo(coordsBottom[0], coordsBottom[1]);
-            cv.lineTo(coordsBottom[2], coordsBottom[3]);
-            cv.lineTo(coordsBottom[4], coordsBottom[5]);
-        } else {
-            cv.moveTo(coordsTop[0], coordsTop[1]);
-            cv.lineTo(coordsTop[2], coordsTop[3]);
-            cv.lineTo(coordsTop[4], coordsTop[5]);
-        }
+        if (count % 2 == 0) coords = [-coords[0], -coords[1], -coords[2], -coords[3], coords[4], -coords[5]];
+        cv.moveTo(coords[0], coords[1]);
+        cv.lineTo(coords[2], coords[3]);
+        cv.lineTo(coords[4], coords[5]);
     }
 
-    drawCorner(angle) {
+    drawCorner() {
         //высчитываем координаты нового уголка x0 + r*cos(a)/y0 + r*sin(a)
         if (count % 2 == 0) {
-            var x = -(DrawC.prev.x - DrawC.curr.len) + DrawC.curr.len * Math.cos(angle);
-            var y = 39 + DrawC.curr.len * Math.sin(angle);
+            var x = -(DrawC.prev.x - DrawC.curr.len) + DrawC.curr.len * Math.cos(DrawC.angle);
+            var y = 39 + DrawC.curr.len * Math.sin(DrawC.angle);
         } else {
-            var x = (DrawC.curr.x - DrawC.curr.len) + DrawC.curr.len * Math.cos(Math.PI - angle);
-            var y = -(29 + DrawC.curr.len * Math.sin(Math.PI - angle));
+            var x = (DrawC.curr.x - DrawC.curr.len) + DrawC.curr.len * Math.cos(Math.PI - DrawC.angle);
+            var y = -(29 + DrawC.curr.len * Math.sin(Math.PI - DrawC.angle));
         }
         //если дуга новая, то сохраняем параметры начального положения уголка
         if (DrawC.corner.newArc) {
-            DrawC.corner.x = x;
-            DrawC.corner.y = y;
-            DrawC.corner.angle = angle;
-            DrawC.corner.newArc = false;
+            DrawC.corner = {
+                x: x,
+                y: y,
+                angle: DrawC.angle,
+                newArc: false
+            }
         } else { //иначе скрываем предыдущий уголок
             cv.save();
-            this.setCorner([-9, 5, 9, 5, 0, -3], [9, -5, -9, -5, 0, 3], "white", DrawC.corner.x, DrawC.corner.y, DrawC.corner.angle);
+            this.setCorner([-9, 5, 9, 5, 0, -3], "white", DrawC.corner.x, DrawC.corner.y, DrawC.corner.angle);
             cv.fill();
             cv.restore();
         }
 
         cv.save();
-        this.setCorner([-7, 4, 7, 4, 0, -2], [7, -4, -7, -4, 0, 2], "#999", x, y, angle);
+        this.setCorner([-7, 4, 7, 4, 0, -2], "#999", x, y, DrawC.angle);
         cv.fill();
         cv.restore();
 
-        DrawC.corner.x = x;
-        DrawC.corner.y = y;
-        DrawC.corner.angle = angle;
+        DrawC.corner = {
+            x: x,
+            y: y,
+            angle: DrawC.angle
+        }
     }
 }
 
@@ -253,7 +257,7 @@ class Initialize {
         Initialize.readConfig();
         h = cvel.offsetHeight;
         w = cvel.offsetWidth - 40;
-        scale = w / (size * 2 + 1)
+        scale = w / (config.size * 2 + 1)
         centerY = cvel.getBoundingClientRect().top + h / 2;
         centerX = cvel.getBoundingClientRect().left + w / 2 + 20;
         count = 0; //текущий номер 
@@ -263,9 +267,7 @@ class Initialize {
     static readConfig() {
         config = fs.readFileSync("./config.json", 'utf-8');
         config = JSON.parse(config);
-        TitleC.tips = config.tips;
-        size = config.size;
-        range.value = size;
+        range.value = config.size;
     }
 
     static initCanvasProps() {
@@ -291,7 +293,7 @@ Initialize.initCanvasProps();
 range.addEventListener('input', function () {
     let s = Number.parseInt(range.value);
     if (!isNaN(s))
-        if (s != size) {
+        if (s != config.size) {
             if (s > 8) s = 8;
             config.size = Math.abs(s);
             fs.writeFileSync('./config.json', JSON.stringify(config, null, 4));
@@ -300,6 +302,8 @@ range.addEventListener('input', function () {
 });
 
 refresh.addEventListener('click', function () {
+    window.cancelAnimationFrame(animCir);
+    window.cancelAnimationFrame(animArc);
     Initialize.reInit();
 });
 
