@@ -17,14 +17,14 @@ const fs = require("fs"); //filesystem lib node.js
 
 class Title {
     constructor() {
-        this.titles = new Object();
+        this.tips = new Object();
         this.count = 0;
     }
 
     setTitle() {
         let pos = (count + 1) % 2;
         pos == 1 ? pos = ~~(-(count + 1) / 2) : pos = ~~((count + 1) / 2);
-        if (this.count > this.titles.length - 1 || this.titles[pos] == undefined) {
+        if (this.count > this.tips.length - 1 || this.tips[pos] == undefined) {
             imp.style = "display: none";
             imp.className = "";
             return 1;
@@ -32,11 +32,11 @@ class Title {
 
         //imp.className = "";
         imp.style.display = "block";
-        imp.querySelector('span').innerHTML = this.titles[pos].text;
+        imp.querySelector('span').innerHTML = this.tips[pos].text;
 
         let x, y;
         x = centerX - impW + scale * pos;
-        if (this.titles[pos].loc == "b") {
+        if (this.tips[pos].loc == "b") {
             if (x < 0) {
                 x += impW;
                 elc.style = "bottom: auto; right:auto; transform: scaleX(-1) rotateZ(45deg); top: -16px; left: -16px";
@@ -90,7 +90,7 @@ class Draw {
         cv.lineWidth = 2;
         cv.strokeStyle = "#000";
         cv.fillStyle = "#000";
-        cv.font = "16px Calibri Light";
+        cv.font = "16px Calibri";
         cv.beginPath();
         //ось
         cv.moveTo(-w / 2, 0);
@@ -263,7 +263,7 @@ class Initialize {
     static readConfig() {
         config = fs.readFileSync("./config.json", 'utf-8');
         config = JSON.parse(config);
-        TitleC.titles = config.titles;
+        TitleC.tips = config.tips;
         size = config.size;
         range.value = size;
     }
@@ -276,10 +276,9 @@ class Initialize {
         count = 1; //текущий номер   
     }
 
-    static reInit(s) {
-        if (s > 8) s = 8;
+    static reInit() {
         cv.clearRect(-w / 2 - 20, -h / 2, w + 40, h);
-        new Initialize(s);
+        new Initialize();
         Initialize.initCanvasProps();
     }
 }
@@ -293,14 +292,15 @@ range.addEventListener('input', function () {
     let s = Number.parseInt(range.value);
     if (!isNaN(s))
         if (s != size) {
-            config.size = s;
+            if (s > 8) s = 8;
+            config.size = Math.abs(s);
             fs.writeFileSync('./config.json', JSON.stringify(config, null, 4));
-            Initialize.reInit(s);
+            Initialize.reInit();
         }
 });
 
 refresh.addEventListener('click', function () {
-    Initialize.reInit(size);
+    Initialize.reInit();
 });
 
 document.addEventListener('click', function (e) {
