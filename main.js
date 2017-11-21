@@ -13,7 +13,7 @@ app.on('window-all-closed', function () {
 function createWindow() {
     appWindow = new BrowserWindow({
         width: 800,
-        height: 800,
+        height: 810,
         resizable: false,
         autoHideMenuBar: true,
         useContentSize: true

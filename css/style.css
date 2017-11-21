@@ -133,6 +133,21 @@ label[for=title] {
     animation: fadeIn 0.3s ease-in-out;
 }
 
+body:hover #author {
+    opacity: 0.4;
+}
+
+#author {
+    position: fixed;
+    left: 10px;
+    bottom: 10px;
+    opacity: 0.1;
+    font-size: 14px;
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: default;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;

@@ -89,7 +89,7 @@ refresh.addEventListener('click', function () {
 document.addEventListener('click', function (e) {
     let el = e.target;
     while (el.tagName != "HTML") {
-        if (el.tagName == "CANVAS" || el.id == "imp") {
+        if (el.tagName == "CANVAS" || el.id == "imp" || el.id == "author") {
             DrawC.Next();
             document.getElementById("open").checked = false;
             break;
