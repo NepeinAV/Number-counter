@@ -37,6 +37,15 @@ class Initialize {
     static readConfig() {
         config = fs.readFileSync(__dirname + "/config.json", 'utf-8');
         config = JSON.parse(config);
+        config.size = Number.parseInt(config.size);
+        if (isNaN(config.size)) {
+            config.size = 0;
+            fs.writeFileSync(__dirname + '/config.json', JSON.stringify(config, null, 4));
+        } else {
+            if (config.size > 8) config.size = 8;
+            config.size = Math.abs(config.size);
+            fs.writeFileSync(__dirname + '/config.json', JSON.stringify(config, null, 4));
+        }
         range.value = config.size;
     }
 
