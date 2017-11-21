@@ -1,55 +1,61 @@
 'use strict';
 
-var cvel = document.getElementById("canvas"); //Canvas element
-var cv = cvel.getContext("2d"); //2d context
-var impW = 250;
-var elc = document.querySelector("#imp .corner"); //уголок элемента imp
-var size; //размерность
-var h, w; //размер canvas
-var scale; //масштаб 
-var centerY, centerX; //центр холста
-var count; //текущий номер 
+var cvel = document.getElementById("canvas"), //Canvas element
+    cv = cvel.getContext("2d"), //2d context
+    impW = 250,
+    elc = document.querySelector("#imp .corner"), //уголок элемента imp
+    size, //размерность
+    h, w, //размер canvas
+    scale, //масштаб 
+    centerY, centerX, //центр холста
+    count, //текущий номер 
+    config;
+
+var DrawC, DrawArcC, TitleC; //классы
+
+const fs = require("fs"); //filesystem lib node.js
 
 class Title {
     constructor() {
-        this.titles = {
-            0: {
-                text: "Нумерация начинается с нуля",
-                pos: [0, "b"]
-            },
-            1: {
-                text: "Наименьшее положительное непронумерованное число",
-                pos: [1, "b"]
-            },
-            2: {
-                text: "Число противоположное предыдущему",
-                pos: [-1, "t"]
-            },
-        }
+        this.titles = new Object();
+        this.count = 0;
     }
+
     setTitle() {
-        if (count > 2) {
-            imp.style.display = "none";
+        let pos = (count + 1) % 2;
+        pos == 1 ? pos = ~~(-(count + 1) / 2) : pos = ~~((count + 1) / 2);
+        if (this.count > this.titles.length - 1 || this.titles[pos] == undefined) {
+            imp.style = "display: none";
+            imp.className = "";
             return 1;
         }
-        imp.querySelector('span').innerHTML = this.titles[count].text;
+
+        //imp.className = "";
+        imp.style.display = "block";
+        imp.querySelector('span').innerHTML = this.titles[pos].text;
+
         let x, y;
-        x = centerX - impW + scale * this.titles[count].pos[0];
-        if (x < 0) {
-            x += impW;
-            this.titles[count].pos[1] = "lb"
-        }
-        if (this.titles[count].pos[1] == "b") {
+        x = centerX - impW + scale * pos;
+        if (this.titles[pos].loc == "b") {
+            if (x < 0) {
+                x += impW;
+                elc.style = "bottom: auto; right:auto; transform: scaleX(-1) rotateZ(45deg); top: -16px; left: -16px";
+            } else
+                elc.style = "bottom: auto; transform: rotateZ(45deg); top: -16px; ";
+
             y = centerY + 35 + 32;
-            elc.style = "bottom: auto; transform: rotateZ(45deg); top: -16px; ";
-        } else if (this.titles[count].pos[1] == "t") {
+        } else {
+            if (x < 0) {
+                x += impW;
+                elc.style = "bottom: -16px; transform: scaleX(-1) rotateZ(-45deg); left: -16px; top: auto; right: auto ";
+            } else
+                elc.style = "bottom: -16px; transform: rotateZ(-45deg); top: auto; ";
+
             y = centerY - imp.offsetHeight - 16 - 38;
-            elc.style = "bottom: -16px; transform: rotateZ(-45deg); top: auto; ";
-        } else if (this.titles[count].pos[1] == "lb") {
-            y = centerY - imp.offsetHeight - 16 - 38;
-            elc.style = "bottom: -16px; transform: scaleX(-1) rotateZ(-45deg); left: -16px; top: auto; right: auto ";
         }
         imp.style = "top: " + y + "px; " + "left: " + x + "px";
+        imp.className = "anim";
+        this.count++;
     }
 }
 
@@ -240,9 +246,11 @@ class DrawArc {
 }
 
 class Initialize {
-    constructor(s) {
-        size = s;
-        range.value = size;
+    constructor() {
+        DrawC = new Draw();
+        DrawArcC = new DrawArc();
+        TitleC = new Title();
+        Initialize.readConfig();
         h = cvel.offsetHeight;
         w = cvel.offsetWidth - 40;
         scale = w / (size * 2 + 1)
@@ -250,9 +258,14 @@ class Initialize {
         centerX = cvel.getBoundingClientRect().left + w / 2 + 20;
         count = 0; //текущий номер 
         imp.style.display = "none";
-        DrawC = new Draw();
-        DrawArcC = new DrawArc();
-        TitleC = new Title();
+    }
+
+    static readConfig() {
+        config = fs.readFileSync("./config.json", 'utf-8');
+        config = JSON.parse(config);
+        TitleC.titles = config.titles;
+        size = config.size;
+        range.value = size;
     }
 
     static initCanvasProps() {
@@ -272,16 +285,18 @@ class Initialize {
 }
 
 //инициализация стандартных значений и свойств, отрисовка
-var DrawC, DrawArcC, TitleC;
-new Initialize(3);
+new Initialize();
 cv.translate((w + 40) / 2, h / 2); //помещаем начало координат в середину
 Initialize.initCanvasProps();
 
 range.addEventListener('input', function () {
     let s = Number.parseInt(range.value);
     if (!isNaN(s))
-        if (s != size)
+        if (s != size) {
+            config.size = s;
+            fs.writeFileSync('./config.json', JSON.stringify(config, null, 4));
             Initialize.reInit(s);
+        }
 });
 
 refresh.addEventListener('click', function () {

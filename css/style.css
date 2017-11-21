@@ -130,10 +130,14 @@ label[for=title] {
     background: #2a5885 url(../img/settings.svg) 50% 50%/71% no-repeat;
 }
 
+.anim {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
-        margin-left: 20px;
+        margin-left: -20px;
     }
     to {
         opacity: 1;
